@@ -1,0 +1,62 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "Your Initials - see the (i) note -->": {
+        "type": "string",
+        "metadata": {
+          "description": "Your Initials - The resource group will be 'CasIdentityLab' with your initials appended to the end. If creating additional instances add a sequence number to the end of your initials (i.g. 'ABC1') "
+        }
+      },
+      "Location": {
+        "type": "string",
+        "defaultValue": "[deployment().location]",
+        "metadata": {
+          "description": "Location for the resource group"
+        }
+      },
+      "Cost Center": {
+        "type": "string",
+        "metadata": {
+            "description": "i.g. 050000008781"
+        }
+      },
+      "Environment": {
+          "type": "string",
+          "metadata": {
+              "description": "i.g. dev"
+          }
+      },
+      "Owner": {
+          "type": "string",
+          "metadata": {
+              "description": "i.g. your.name@nov.com"
+          }
+      },
+      "Segment": {
+          "type": "string",
+          "metadata": {
+              "description": "i.g. ot"
+          }
+      }
+    },
+    "variables" : {
+        "rg": "[concat('CasIdentityLab', parameters('Your Initials - see the (i) note -->'))]"
+    },
+    "resources": [
+      {
+        "type": "Microsoft.Resources/resourceGroups",
+        "apiVersion": "2020-06-01",
+        "name": "[variables('rg')]",
+        "location": "[parameters('Location')]",
+        "tags": {
+          "Note": "subscription level deployment",
+          "costcenter": "[parameters('Cost Center')]",
+          "environment": "[parameters('Environment')]",
+          "owner": "[parameters('Owner')]",
+          "segment": "[parameters('Segment')]"
+        },
+        "properties": {}
+      }
+    ]
+  }
