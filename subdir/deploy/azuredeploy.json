@@ -5,7 +5,7 @@
       "Your Initials - see the (i) note -->": {
         "type": "string",
         "metadata": {
-          "description": "Your Initials - The resource group will be 'CasIdentityLab' with your initials appended to the end. If creating additional instances add a sequence number to the end of your initials (i.g. 'ABC1') "
+          "description": "Your Initials - The resource group will be 'Lab' with your initials appended to the end. If creating additional instances add a sequence number to the end of your initials (i.g. 'ABC1') "
         }
       },
       "Location": {
