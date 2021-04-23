@@ -2,7 +2,7 @@
     "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-      "Your Initials - see the (i) note -->": {
+      "Your Initials": {
         "type": "string",
         "metadata": {
           "description": "Your Initials - The resource group will be 'Lab' with your initials appended to the end. If creating additional instances add a sequence number to the end of your initials (i.g. 'ABC1') "
@@ -41,7 +41,7 @@
       }
     },
     "variables" : {
-        "rg": "[concat('Lab', parameters('Your Initials - click the i note -->'))]"
+        "rg": "[concat('Lab', parameters('Your Initials'))]"
     },
     "resources": [
       {
