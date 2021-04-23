@@ -18,7 +18,7 @@
       "Cost Center": {
         "type": "string",
         "metadata": {
-            "description": "i.g. 050000008781"
+            "description": "i.g. 00000000001"
         }
       },
       "Environment": {
@@ -30,7 +30,7 @@
       "Owner": {
           "type": "string",
           "metadata": {
-              "description": "i.g. your.name@nov.com"
+              "description": "i.g. your.name@company.com"
           }
       },
       "Segment": {
@@ -41,7 +41,7 @@
       }
     },
     "variables" : {
-        "rg": "[concat('CasIdentityLab', parameters('Your Initials - see the (i) note -->'))]"
+        "rg": "[concat('Lab', parameters('Your Initials - see the (i) note -->'))]"
     },
     "resources": [
       {
