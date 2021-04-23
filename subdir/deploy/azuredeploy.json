@@ -41,7 +41,7 @@
       }
     },
     "variables" : {
-        "rg": "[concat('Lab', parameters('Your Initials - see the (i) note -->'))]"
+        "rg": "[concat('Lab', parameters('Your Initials - click the i note -->'))]"
     },
     "resources": [
       {
