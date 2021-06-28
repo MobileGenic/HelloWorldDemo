@@ -56,7 +56,7 @@
         "owner": "[parameters('Owner')]",
         "segment": "[parameters('Segment')]"
       },
-      "properties": {}
+      "properties": {} 
     }
   ]
 }
