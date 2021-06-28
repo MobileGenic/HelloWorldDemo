@@ -1,106 +1,279 @@
 {
-  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-  "contentVersion": "1.0.0.0",
-  "parameters": {
-    "siteName": {
-      "type": "string"
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {"Your Initials": {
+        "type": "string",
+        "metadata": {
+            "description": "Your initials will be appended to the name of the service type (i.g. 'StorageAccount'). If creating more instances, you should add a sequence number to your initials like 'abc1'. (i.g. StorageAccountABC1)"
+        }
+        }
     },
-    "hostingPlanName": {
-      "type": "string"
+    "functions": [],
+    "variables": {
+        "roleAssignmentName": "[guid(resourceGroup().id)]",
+        "appServicePlan": "[concat('ServicePlan', parameters('Your Initials'))]",
+        "webAppName":"[concat('Application', parameters('Your Initials'))]",
+        "storageAccountName":"[tolower(concat('StorageAccount', parameters('Your Initials')))]",
+        "keyVaultName":"[concat('KeyVault', parameters('Your Initials'))]",
+        "sqlServerName":"[concat('SqlServer', parameters('Your Initials'))]",
+        "databaseName":"[concat('Database', parameters('Your Initials'))]",
+        "dataSourceString":"[concat('tcp:',variables('sqlServerName'))]",
+        "prefixedDatabaseName":"[concat('/',variables('databaseName'))]"
     },
-    "siteLocation": {
-      "type": "string"
+    "resources": [{
+        "name": "[variables('webAppName')]",
+        "type": "Microsoft.Web/sites",
+        "apiVersion": "2018-11-01",
+        "location": "[resourceGroup().location]",
+        "tags": {
+                "Note": "Microsoft.Web/sites - web app"
+            },
+        "identity": {
+                "type": "SystemAssigned"
+            },   
+        "kind": "app",
+        "dependsOn": [
+            "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlan'))]"
+        ],
+        "properties": {
+            "name": "[variables('webAppName')]",
+            "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlan'))]"
+        },
+      "resources": [
+        {
+          "name": "appsettings",
+          "type": "config",
+          "apiVersion": "2018-11-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites', variables('webAppName'))]"
+          ],
+          "tags": {
+            "displayName": "appsettings"
+          },
+       
+          "properties": {
+            "RESOURCE_GROUP_NAME": "[resourceGroup().name]",
+            "AZURE_SUBSCRIPTION_ID": "[subscription().subscriptionId]",
+            "KEY_VAULT_NAME": "[variables('keyVaultName')]",
+            "DATA_SOURCE_STRING":"[concat(variables('dataSourceString'),'.database.windows.net,1433')]",
+            "DATABASE_NAME":"[variables('databaseName')]"
+          }
+        }
+      ]        
     },
-    "sku": {
-      "type": "string",
-      "allowedValues": [
-        "Free",
-        "Shared",
-        "Basic",
-        "Standard"
-      ],
-      "defaultValue": "Free"
-    },
-    "workerSize": {
-      "type": "string",
-      "allowedValues": [
-        "0",
-        "1",
-        "2"
-      ],
-      "defaultValue": "0"
-    },
-    "someAppSetting": {
-      "type": "string",
-      "defaultValue": "Test App Setting Value"
-    },
-    "repoUrl": {
-      "type": "string"
-    },
-    "branch": {
-      "type": "string"
-    }
-  },
-  "resources": [
     {
-      "apiVersion": "2014-06-01",
-      "name": "[parameters('hostingPlanName')]",
-      "type": "Microsoft.Web/serverFarms",
-      "location": "[parameters('siteLocation')]",
+        "name": "[variables('appServicePlan')]",
+        "type": "Microsoft.Web/serverfarms",
+        "apiVersion": "2018-02-01",
+        "location": "[resourceGroup().location]",
+        "sku": {
+            "name": "S1",
+                "tier": "Standard",
+                "size": "S1",
+                "family": "S",
+                "capacity": 1
+        },
+        "kind": "app",
+        "tags": {
+            "displayName": "[variables('appServicePlan')]",
+            "Note": "Microsoft.Web/serverfarms - service plan"
+        },
+        "properties": {
+            "name": "[variables('appServicePlan')]",
+                "perSiteScaling": false,
+                "maximumElasticWorkerCount": 1,
+                "isSpot": false,
+                "reserved": false,
+                "isXenon": false,
+                "hyperV": false,
+                "targetWorkerCount": 0,
+                "targetWorkerSizeId": 0            
+        }
+    },
+    {
+        "name": "[variables('storageAccountName')]",
+        "type": "Microsoft.Storage/storageAccounts",
+        "apiVersion": "2019-06-01",
+        "tags": {
+            "displayName": "[variables('storageAccountName')]"
+        },
+        "location": "[resourceGroup().location]",
+        "kind": "StorageV2",
+        "sku": {
+            "name": "Standard_LRS",
+            "tier": "Standard"
+        },
+        "properties": {
+            "minimumTlsVersion": "TLS1_2",
+            "allowBlobPublicAccess": true,
+            "networkAcls": {
+                "bypass": "AzureServices",
+                "virtualNetworkRules": [],
+                "ipRules": [],
+                "defaultAction": "Allow"
+            },
+            "supportsHttpsTrafficOnly": true,
+            "encryption": {
+                "services": {
+                    "file": {
+                        "keyType": "Account",
+                        "enabled": true
+                    },
+                    "blob": {
+                        "keyType": "Account",
+                        "enabled": true
+                    }
+                },
+                "keySource": "Microsoft.Storage"
+            },
+            "accessTier": "Hot"
+        }        
+    },
+    {
+        "type": "Microsoft.Storage/storageAccounts/blobServices",
+        "apiVersion": "2020-08-01-preview",
+        "name": "[concat(variables('storageAccountName'), '/default')]",
+        "dependsOn": [
+            "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+        ],        
+        "sku": {
+            "name": "Standard_LRS",
+            "tier": "Standard"
+        },
+        "properties": {
+            "cors": {
+                "corsRules": []
+            },
+            "deleteRetentionPolicy": {
+                "enabled": false
+            }
+        }
+    },
+    {
+        "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+        "apiVersion": "2020-08-01-preview",
+        "name": "[concat(variables('storageAccountName'), '/default/container-1')]",
+        "dependsOn": [
+            "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('storageAccountName'), 'default')]",
+            "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+        ],
+        "properties": {
+            "defaultEncryptionScope": "$account-encryption-key",
+            "denyEncryptionScopeOverride": false,
+            "publicAccess": "None"
+        }
+    },
+    {
+        "type": "Microsoft.Authorization/roleAssignments",
+        "apiVersion": "2020-04-01-preview",
+        "name": "[variables('roleAssignmentName')]", 
+        "dependsOn": [
+            "[variables('webAppName')]"
+        ],
+        "properties": {
+            "roleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', '8e3af657-a8ff-443c-a75c-2fe8c4bcb635')]",
+            "principalId": "[reference(resourceId('Microsoft.Web/sites', variables('webAppName')), '2019-08-01','full').identity.principalId]",
+            "scope": "[resourceGroup().id]"
+        }
+    },
+    {
+        "type": "Microsoft.KeyVault/vaults",
+        "apiVersion": "2016-10-01",
+        "name": "[variables('keyVaultName')]",
+        "dependsOn": [
+            "[variables('roleAssignmentName')]"
+        ],        
+        "location": "[resourceGroup().location]",
+        "properties": {
+            "sku": {
+                "family": "A",
+                "name": "Standard"
+            },
+            "tenantId": "[subscription().tenantId]",
+            "accessPolicies": [
+                {
+                    "tenantId": "[subscription().tenantId]",
+                    "objectId": "[reference(resourceId('Microsoft.Web/sites', variables('webAppName')), '2019-08-01','full').identity.principalId]",
+                    "permissions": {
+                        "keys": [],
+                        "secrets": [
+                            "Get",
+                            "List",
+                            "Set",
+                            "Delete"
+                        ],
+                        "certificates": []
+                    }
+                }
+            ],
+            "enabledForDeployment": true,
+            "enabledForDiskEncryption": true,
+            "enabledForTemplateDeployment": true,
+            "enableSoftDelete": true
+        }
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2016-10-01",
+      "name": "[concat(variables('keyVaultName'), '/', 'mySecret')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
+      ],
       "properties": {
-        "name": "[parameters('hostingPlanName')]",
-        "sku": "[parameters('sku')]",
-        "workerSize": "[parameters('workerSize')]",
-        "numberOfWorkers": 1
+        "value": "This is a secret"
       }
     },
     {
-      "apiVersion": "2014-06-01",
-      "name": "[parameters('siteName')]",
-      "type": "Microsoft.Web/Sites",
-      "location": "[parameters('siteLocation')]",
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2016-10-01",
+      "name": "[concat(variables('keyVaultName'), '/', 'myThirdPartySecret')]",
+      "location": "[resourceGroup().location]",
       "dependsOn": [
-        "[concat('Microsoft.Web/serverFarms/', parameters('hostingPlanName'))]"
+        "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
       ],
-      "tags": {
-        "[concat('hidden-related:', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', parameters('hostingPlanName'))]": "empty"
-      },
       "properties": {
-        "name": "[parameters('siteName')]",
-        "serverFarm": "[parameters('hostingPlanName')]"
-      },
-      "resources": [
-        {
-          "apiVersion": "2014-04-01",
-          "type": "config",
-          "name": "web",
-          "dependsOn": [
-            "[concat('Microsoft.Web/Sites/', parameters('siteName'))]"
-          ],
-          "properties": {
-            "appSettings": [
-              {
-                "name": "someAppSetting",
-                "value": "[parameters('someAppSetting')]"
-              }
-            ]
-          }
+        "value": "This is a 3rd party secret"
+      }
+    },
+    {
+        "type": "Microsoft.Sql/servers",
+        "apiVersion": "2019-06-01-preview",
+        "name": "[variables('sqlServerName')]",
+        "location": "[resourceGroup().location]",
+        "kind": "v12.0",
+        "identity": {
+            "type": "SystemAssigned"
         },
-        {
-          "apiVersion": "2014-04-01",
-          "name": "web",
-          "type": "sourcecontrols",
-          "dependsOn": [
-            "[resourceId('Microsoft.Web/Sites', parameters('siteName'))]",
-            "[concat('Microsoft.Web/Sites/', parameters('siteName'), '/config/web')]"
-          ],
-          "properties": {
-            "RepoUrl": "[parameters('repoUrl')]",
-            "branch": "[parameters('branch')]",
-            "IsManualIntegration": true
-          }
+        "properties": {
+            "administratorLogin": "administratorLogin",
+            "administratorLoginPassword": "isthiscomplexenoughNOW1!",
+            "version": "12.0",
+            "publicNetworkAccess": "Enabled"
         }
-      ]
-    }
-  ]
+    },
+    {
+    "type": "Microsoft.Sql/servers/databases",
+    "apiVersion": "2019-06-01-preview",
+    "name": "[concat(variables('sqlServerName'), variables('prefixedDatabaseName'))]",
+    "location": "[resourceGroup().location]",
+    "kind": "v12.0,user",
+    "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers', variables('sqlServerName'))]"
+    ],
+    "properties": {
+        "collation": "SQL_Latin1_General_CP1_CI_AS",
+        "maxSizeBytes": 2147483648,
+        "catalogCollation": "SQL_Latin1_General_CP1_CI_AS",
+        "zoneRedundant": false,
+        "readScale": "Disabled",
+        "readReplicaCount": 0
+     },
+     "sku": {
+         "name": "Basic",
+         "tier": "Basic",
+         "capacity": 5
+     }
+    }],
+    "outputs": {}
 }
