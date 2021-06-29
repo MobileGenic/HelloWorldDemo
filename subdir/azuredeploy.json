@@ -304,7 +304,10 @@
         "scriptContent": "echo Hello $1",
         "cleanupPreference": "OnSuccess",
         "retentionInterval": "P1D"
-      }
+      },
+      "dependsOn": [
+        "[resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/',variables('userAssignedIdentityForArmDeploymentScript'))]"
+      ]
     }],
     "outputs": {}
 }
