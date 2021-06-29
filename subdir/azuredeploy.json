@@ -175,7 +175,6 @@
         "properties": {
             "roleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', '8e3af657-a8ff-443c-a75c-2fe8c4bcb635')]",
             "principalId": "[reference(resourceId('Microsoft.Web/sites', variables('webAppName')), '2019-08-01','full').identity.principalId]",
-            "scope": "[resourceGroup().id]"
         }
     },
     {
@@ -282,32 +281,6 @@
     "name": "[variables('userAssignedIdentityForArmDeploymentScript')]",
     "apiVersion": "2018-11-30",
     "location": "[resourceGroup().location]"
-    },
-    {
-      "type": "Microsoft.Resources/deploymentScripts",
-      "apiVersion": "2020-10-01",
-      "name": "[variables('azureCliScriptResource')]",
-      "location": "[resourceGroup().location]",
-      "kind": "AzureCLI",
-      "identity": {
-        "type": "UserAssigned",
-        "userAssignedIdentities": {
-          "[resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/',variables('userAssignedIdentityForArmDeploymentScript'))]": {
-          }
-        }
-      },
-      "properties": {
-        "forceUpdateTag": 1,
-        "AzCliVersion": "2.21.0",
-        "timeout": "PT30M",
-        "arguments": "Test",
-        "scriptContent": "echo Hello $1",
-        "cleanupPreference": "OnSuccess",
-        "retentionInterval": "P1D"
-      },
-      "dependsOn": [
-        "[resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/',variables('userAssignedIdentityForArmDeploymentScript'))]"
-      ]
     }],
     "outputs": {}
 }
