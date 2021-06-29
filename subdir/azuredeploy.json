@@ -19,7 +19,7 @@
         "databaseName":"[concat('Database', parameters('Your Initials'))]",
         "dataSourceString":"[concat('tcp:',variables('sqlServerName'))]",
         "prefixedDatabaseName":"[concat('/',variables('databaseName'))]",
-        "userAssignedIdentityForArmDeploymentScript": "[concat('-UserAssignedIdentityForScripting', parameters('Your Initials'))]",
+        "userAssignedIdentityForArmDeploymentScript": "[concat('UserAssignedIdentityForScripting', parameters('Your Initials'))]",
         "azureCliScriptResource":"[concat('AzCliScriptResource',parameters('Your Initials'))]"
     },
     "resources": [{
