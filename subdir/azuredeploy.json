@@ -18,7 +18,8 @@
         "sqlServerName":"[concat('SqlServer', parameters('Your Initials'))]",
         "databaseName":"[concat('Database', parameters('Your Initials'))]",
         "dataSourceString":"[concat('tcp:',variables('sqlServerName'))]",
-        "prefixedDatabaseName":"[concat('/',variables('databaseName'))]"
+        "prefixedDatabaseName":"[concat('/',variables('databaseName'))]",
+        "userAssignedIdentityForArmDeploymentScript": "[concat(parameters('Your Initials'), '-UserAssignedIdentityForScripting')]"
     },
     "resources": [{
         "name": "[variables('webAppName')]",
@@ -274,6 +275,12 @@
          "tier": "Basic",
          "capacity": 5
      }
+    },
+    {
+    "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+    "name": "[variables('userAssignedIdentityForArmDeploymentScript')]",
+    "apiVersion": "2018-11-30",
+    "location": "[resourceGroup().location]"
     }],
     "outputs": {}
 }
