@@ -301,9 +301,7 @@
         "AzCliVersion": "2.21.0",
         "timeout": "PT30M",
         "arguments": "Test",
-        "scriptContent": "
-            echo Hello $1
-        ",
+        "scriptContent": "echo Hello $1",
         "cleanupPreference": "OnSuccess",
         "retentionInterval": "P1D"
       }
